@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel narrow">
+  <div class="panel-heading">
+    <p class="eyebrow">Staff only</p>
+    <h1>Admin Login</h1>
+  </div>
+  <form method="post" class="form-stack">
+    <label>Username
+      <input name="username" value="admin" autocomplete="username">
+    </label>
+    <label>Password
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit">Login</button>
+  </form>
+</section>
+{% endblock %}

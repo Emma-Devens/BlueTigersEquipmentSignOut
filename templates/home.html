@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Logistics accountability</p>
+    <h1>Request, track, and return equipment in one place.</h1>
+    <p class="intro">Cadets can sign equipment out or report returned items. Staff can review claimed returns, late equipment, current checkouts, and upcoming pickups.</p>
+  </div>
+  <div class="summary-grid">
+    <div><strong>{{ active_count }}</strong><span>Active items</span></div>
+    <div><strong>{{ late_count }}</strong><span>Late returns</span></div>
+    <div><strong>{{ review_count }}</strong><span>Need review</span></div>
+  </div>
+</section>
+
+<section class="action-grid" aria-label="Main actions">
+  <a class="action-card admin" href="{{ url_for('login') }}">
+    <span>Admin</span>
+    <strong>Review equipment</strong>
+    <small>Confirm returns, mark issues, and see late items.</small>
+  </a>
+  <a class="action-card signout" href="{{ url_for('signout') }}">
+    <span>Cadet</span>
+    <strong>Sign out equipment</strong>
+    <small>Log who needs what, when it leaves, and when it comes back.</small>
+  </a>
+  <a class="action-card return" href="{{ url_for('return_equipment') }}">
+    <span>Cadet</span>
+    <strong>Return equipment</strong>
+    <small>Report a full or partial return for staff confirmation.</small>
+  </a>
+</section>
+{% endblock %}

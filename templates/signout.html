@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <div class="panel-heading">
+    <p class="eyebrow">Equipment request</p>
+    <h1>Sign Out Equipment</h1>
+  </div>
+  <form method="post" class="form-stack" id="signout-form">
+    <label>Cadet last name
+      <input name="cadet" required placeholder="C/Lastname">
+    </label>
+    <div class="two-col">
+      <label>Pickup date
+        <input type="date" name="pickup_date" value="{{ today }}" required>
+      </label>
+      <label>Return date
+        <input type="date" name="return_date" value="{{ today }}" required>
+      </label>
+    </div>
+    <label>Why is the equipment needed?
+      <textarea name="reason" rows="3" required placeholder="LLAB, AAS, Color Guard, flight sim setup..."></textarea>
+    </label>
+    <div class="line-items" id="line-items">
+      <div class="item-row">
+        <label>Equipment item
+          <input name="item_name" required placeholder="Item name">
+        </label>
+        <label>Quantity
+          <input name="quantity" type="number" min="1" value="1" required>
+        </label>
+      </div>
+    </div>
+    <button class="secondary" type="button" id="add-item">Add another equipment item</button>
+    <label class="checkbox">
+      <input type="checkbox" name="picked_up">
+      Equipment is being picked up now
+    </label>
+    <button type="submit">Submit request</button>
+  </form>
+</section>
+<script>
+  document.querySelector("#add-item").addEventListener("click", () => {
+    const row = document.querySelector(".item-row").cloneNode(true);
+    row.querySelectorAll("input").forEach((input) => {
+      input.value = input.type === "number" ? "1" : "";
+    });
+    document.querySelector("#line-items").appendChild(row);
+  });
+</script>
+{% endblock %}

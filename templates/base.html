@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blue Tigers Equipment Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('home') }}">Blue Tigers Equipment Store</a>
+      <nav>
+        <a href="{{ url_for('signout') }}">Sign Out</a>
+        <a href="{{ url_for('return_equipment') }}">Return</a>
+        {% if session.get("admin") %}
+          <a href="{{ url_for('admin') }}">Admin</a>
+          <a href="{{ url_for('logout') }}">Logout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}">Admin Login</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

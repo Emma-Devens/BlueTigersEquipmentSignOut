@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: blue-tigers-equipment-store
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false

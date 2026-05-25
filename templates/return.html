@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <div class="panel-heading">
+    <p class="eyebrow">Cadet return report</p>
+    <h1>Return Equipment</h1>
+  </div>
+  {% if records %}
+    <form method="post" class="form-stack">
+      <label>Request
+        <select name="record_id" required>
+          {% for record in records %}
+            <option value="{{ record.id }}">{{ record.cadet }} | {{ record.items_text }} | due {{ record.return_date }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="checkbox">
+        <input type="radio" name="return_type" value="all" checked>
+        Returning all equipment
+      </label>
+      <label class="checkbox">
+        <input type="radio" name="return_type" value="partial">
+        Returning only some of the items
+      </label>
+      <label>List the items not being returned
+        <textarea name="missing_items" rows="6" placeholder="Leave blank if everything was returned."></textarea>
+      </label>
+      <button type="submit">Submit return report</button>
+    </form>
+  {% else %}
+    <div class="empty-state">No open equipment records are ready for return.</div>
+  {% endif %}
+</section>
+{% endblock %}

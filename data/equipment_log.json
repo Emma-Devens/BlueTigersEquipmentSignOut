@@ -1,0 +1,188 @@
+[
+  {
+    "id": "sample-waiting",
+    "cadet": "C/Anderson",
+    "pickup_date": "2026-05-27",
+    "return_date": "2026-05-31",
+    "reason": "LLAB setup",
+    "items": [
+      {
+        "name": "Guidon stand",
+        "quantity": "2"
+      },
+      {
+        "name": "Extension cord",
+        "quantity": "3"
+      }
+    ],
+    "picked_up": true,
+    "return_claimed": true,
+    "return_type": "all",
+    "missing_items": "",
+    "staff_confirmed": true,
+    "staff_issue": false,
+    "staff_notes": "",
+    "created_at": "2026-05-25T12:00:00",
+    "staff_confirmed_at": "2026-05-25T15:31:42",
+    "issue_details": "",
+    "issue_logged_at": "",
+    "ready_for_pickup": false
+  },
+  {
+    "id": "sample-out",
+    "cadet": "C/Martinez",
+    "pickup_date": "2026-05-24",
+    "return_date": "2026-05-29",
+    "reason": "Color Guard practice",
+    "items": [
+      {
+        "name": "Rifle",
+        "quantity": "4"
+      }
+    ],
+    "picked_up": true,
+    "return_claimed": false,
+    "return_type": "",
+    "missing_items": "",
+    "staff_confirmed": false,
+    "staff_issue": false,
+    "staff_notes": "",
+    "created_at": "2026-05-25T12:02:00"
+  },
+  {
+    "id": "sample-late",
+    "cadet": "C/Johnson",
+    "pickup_date": "2026-05-18",
+    "return_date": "2026-05-20",
+    "reason": "AAS event",
+    "items": [
+      {
+        "name": "Megaphone",
+        "quantity": "1"
+      }
+    ],
+    "picked_up": true,
+    "return_claimed": false,
+    "return_type": "",
+    "missing_items": "",
+    "staff_confirmed": true,
+    "staff_issue": false,
+    "staff_notes": "",
+    "created_at": "2026-05-25T12:04:00",
+    "ready_for_pickup": false,
+    "staff_confirmed_at": "2026-05-25T15:31:45",
+    "issue_details": "",
+    "issue_logged_at": ""
+  },
+  {
+    "id": "sample-review",
+    "cadet": "C/Nguyen",
+    "pickup_date": "2026-05-22",
+    "return_date": "2026-05-25",
+    "reason": "Flight sim setup",
+    "items": [
+      {
+        "name": "HDMI cable",
+        "quantity": "2"
+      },
+      {
+        "name": "Adapter",
+        "quantity": "1"
+      }
+    ],
+    "picked_up": true,
+    "return_claimed": true,
+    "return_type": "partial",
+    "missing_items": "1 HDMI cable",
+    "staff_confirmed": true,
+    "staff_issue": false,
+    "staff_notes": "",
+    "created_at": "2026-05-25T12:06:00"
+  },
+  {
+    "id": "788d13ece995423596d987e87d63129e",
+    "cadet": "C/Devens",
+    "pickup_date": "2026-05-25",
+    "return_date": "2026-06-01",
+    "reason": "LLAB",
+    "items": [
+      {
+        "name": "Guidon",
+        "quantity": "1"
+      },
+      {
+        "name": "Rubber Ducky",
+        "quantity": "10"
+      },
+      {
+        "name": "IFAC",
+        "quantity": "3"
+      }
+    ],
+    "picked_up": true,
+    "return_claimed": true,
+    "return_type": "partial",
+    "missing_items": "3 IFAC",
+    "staff_confirmed": true,
+    "staff_issue": false,
+    "staff_notes": "missing rubber ducky",
+    "created_at": "2026-05-25T14:09:03",
+    "staff_confirmed_at": "2026-05-25T14:42:15",
+    "issue_details": "",
+    "issue_logged_at": ""
+  },
+  {
+    "id": "2de18b5d988e45f69e0fe3619817942a",
+    "cadet": "C/Devens",
+    "pickup_date": "2026-05-25",
+    "return_date": "2026-06-01",
+    "reason": "LLAB",
+    "items": [
+      {
+        "name": "N/A",
+        "quantity": "100"
+      }
+    ],
+    "picked_up": false,
+    "pickup_available_at": "2026-05-28T14:43:13",
+    "return_claimed": false,
+    "return_type": "",
+    "missing_items": "",
+    "returned_at": "",
+    "staff_confirmed": true,
+    "staff_confirmed_at": "2026-05-25T15:31:40",
+    "staff_issue": false,
+    "issue_details": "",
+    "issue_logged_at": "",
+    "staff_notes": "",
+    "created_at": "2026-05-25T14:43:13",
+    "ready_for_pickup": true
+  },
+  {
+    "id": "02d515683e474eae83e7a9c512ed12f9",
+    "cadet": "C/Devens",
+    "pickup_date": "2026-06-09",
+    "return_date": "2026-06-13",
+    "reason": "LLAB",
+    "items": [
+      {
+        "name": "guess",
+        "quantity": "1"
+      }
+    ],
+    "picked_up": false,
+    "pickup_available_at": "2026-05-28T15:17:08",
+    "return_claimed": false,
+    "return_type": "",
+    "missing_items": "",
+    "returned_at": "",
+    "staff_confirmed": true,
+    "staff_confirmed_at": "2026-05-25T15:31:37",
+    "staff_issue": false,
+    "issue_details": "",
+    "issue_logged_at": "",
+    "staff_notes": "",
+    "created_at": "2026-05-25T15:17:08",
+    "ready_for_pickup": false
+  }
+]

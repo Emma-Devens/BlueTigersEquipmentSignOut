@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel wide">
+  <div class="panel-heading">
+    <p class="eyebrow">Staff dashboard</p>
+    <h1>Admin Screen</h1>
+  </div>
+  <div class="tabs">
+    <a href="#returned">Equipment Returned</a>
+    <a href="#late">Late Equipment</a>
+    <a href="#out">Equipment Currently Out</a>
+    <a href="#scheduled">Equipment to be Signed Out</a>
+  </div>
+
+  <section id="returned" class="admin-section">
+    <h2>Equipment Returned</h2>
+    {% for record in buckets.returned %}
+      {% include "_admin_record.html" %}
+    {% else %}
+      <p class="empty-state">No returned items are waiting on staff confirmation.</p>
+    {% endfor %}
+  </section>
+
+  <section id="late" class="admin-section">
+    <h2>Late Equipment</h2>
+    {% for record in buckets.late %}
+      {% include "_read_record.html" %}
+    {% else %}
+      <p class="empty-state">Nothing is late right now.</p>
+    {% endfor %}
+  </section>
+
+  <section id="out" class="admin-section">
+    <h2>Equipment Currently Out</h2>
+    {% for record in buckets.out %}
+      {% include "_read_record.html" %}
+    {% else %}
+      <p class="empty-state">No equipment is currently checked out.</p>
+    {% endfor %}
+  </section>
+
+  <section id="scheduled" class="admin-section">
+    <h2>Equipment to be Signed Out</h2>
+    {% for record in buckets.scheduled %}
+      {% include "_admin_record.html" %}
+    {% else %}
+      <p class="empty-state">No upcoming pickups are scheduled.</p>
+    {% endfor %}
+  </section>
+</section>
+{% endblock %}
