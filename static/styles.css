@@ -196,6 +196,25 @@ small {
   gap: 16px;
 }
 
+.return-items {
+  padding: 16px 18px;
+  border-left: 5px solid var(--blue);
+  border-radius: 6px;
+  background: #eef5fa;
+}
+
+.return-items h2 {
+  margin-bottom: 8px;
+  color: var(--blue-dark);
+}
+
+.return-items ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 22px;
+}
+
 .two-col,
 .item-row {
   display: grid;

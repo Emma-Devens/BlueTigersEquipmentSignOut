@@ -272,22 +272,52 @@ refreshRemoveButtons();
 
 
 def return_page(admin: bool = False) -> bytes:
-    open_records = [r for r in enrich(load_records()) if r["status"] in {"checked-out", "late", "waiting-pickup"}]
+    open_records = sorted(
+        [r for r in enrich(load_records()) if r["status"] in {"checked-out", "late", "waiting-pickup"}],
+        key=return_sort_key,
+    )
     if not open_records:
         form = '<div class="empty-state">No open equipment records are ready for return.</div>'
     else:
-        options = "".join(
-            f'<option value="{esc(record["id"])}">{esc(record["cadet"])} | {esc(record["items_text"])} | due {esc(record["return_date"])}</option>'
-            for record in open_records
-        )
+        options = '<option value="" selected disabled>Select a return request</option>'
+        for record in open_records:
+            items_json = json.dumps(record["items"]).replace("<", r"\u003c")
+            options += (
+                f'<option value="{esc(record["id"])}" data-items="{esc(items_json)}">'
+                f'{esc(record["cadet"])} | Return {esc(record["return_date"])}'
+                f'</option>'
+            )
         form = f"""
 <form method="post" class="form-stack">
-  <label>Request<select name="record_id" required>{options}</select></label>
+  <label>Request<select name="record_id" id="return-request" required>{options}</select></label>
+  <section class="return-items" id="return-items" hidden aria-live="polite">
+    <h2>Equipment to Return</h2>
+    <ul id="return-items-list"></ul>
+  </section>
   <label class="checkbox"><input type="radio" name="return_type" value="all" checked>Returning all equipment</label>
   <label class="checkbox"><input type="radio" name="return_type" value="partial">Returning only some of the items</label>
   <label>List the items not being returned, including damaged or broken items<textarea name="missing_items" rows="6" placeholder="Leave blank if everything was returned in good condition."></textarea></label>
   <button type="submit">Submit return report</button>
-</form>"""
+</form>
+<script>
+const returnRequest = document.querySelector("#return-request");
+const returnItems = document.querySelector("#return-items");
+const returnItemsList = document.querySelector("#return-items-list");
+
+function showReturnItems() {{
+  const selected = returnRequest.options[returnRequest.selectedIndex];
+  const items = selected?.dataset.items ? JSON.parse(selected.dataset.items) : [];
+  returnItemsList.replaceChildren();
+  items.forEach((item) => {{
+    const line = document.createElement("li");
+    line.textContent = item.quantity + " x " + item.name;
+    returnItemsList.appendChild(line);
+  }});
+  returnItems.hidden = items.length === 0;
+}}
+
+returnRequest.addEventListener("change", showReturnItems);
+</script>"""
     body = f'<section class="panel"><div class="panel-heading"><p class="eyebrow">Cadet return report</p><h1>Return Equipment</h1></div>{form}</section>'
     return layout("Return", body, admin)
 
