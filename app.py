@@ -369,7 +369,6 @@ def note_lines(record: dict) -> str:
 
 
 def admin_record(record: dict) -> str:
-    picked = "checked" if record.get("picked_up") else ""
     ready = "checked" if record.get("ready_for_pickup") else ""
     confirmed = "checked" if record.get("staff_confirmed") else ""
     issue = "checked" if record.get("staff_issue") else ""
@@ -383,7 +382,6 @@ def admin_record(record: dict) -> str:
     {note_lines(record)}
   </div>
   <label class="checkbox"><input type="checkbox" name="ready_for_pickup" {ready}>Ready for pick-up</label>
-  <label class="checkbox"><input type="checkbox" name="picked_up" {picked}>Picked up</label>
   <label class="checkbox"><input type="checkbox" name="staff_confirmed" {confirmed}>Returned</label>
   <label class="checkbox"><input type="checkbox" name="staff_issue" {issue}>Broken, missing, or misplaced</label>
   <input name="issue_details" value="{esc(record.get("issue_details"))}" placeholder="Missing items">
@@ -576,9 +574,6 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                     was_confirmed = bool(record.get("staff_confirmed"))
                     was_issue = bool(record.get("staff_issue"))
                     record["ready_for_pickup"] = "ready_for_pickup" in form
-                    record["picked_up"] = "picked_up" in form
-                    if record["picked_up"]:
-                        record["ready_for_pickup"] = False
                     record["staff_confirmed"] = "staff_confirmed" in form
                     if record["staff_confirmed"] and not was_confirmed:
                         record["staff_confirmed_at"] = now().isoformat(timespec="seconds")

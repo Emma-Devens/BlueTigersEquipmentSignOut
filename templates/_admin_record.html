@@ -6,7 +6,6 @@
     <small>Pickup {{ record.pickup_date }} | Return {{ record.return_date }}</small>
     {% if record.missing_items %}<small>Missing: {{ record.missing_items }}</small>{% endif %}
   </div>
-  <label class="checkbox"><input type="checkbox" name="picked_up" {% if record.picked_up %}checked{% endif %}> Picked up</label>
   <label class="checkbox"><input type="checkbox" name="staff_confirmed" {% if record.staff_confirmed %}checked{% endif %}> Returned</label>
   <label class="checkbox"><input type="checkbox" name="staff_issue" {% if record.staff_issue %}checked{% endif %}> Broken, missing, or misplaced</label>
   <input name="staff_notes" value="{{ record.staff_notes }}" placeholder="Additional details">
