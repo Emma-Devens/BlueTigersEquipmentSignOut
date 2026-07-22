@@ -158,7 +158,7 @@ def layout(title: str, body: str, admin: bool = False) -> bytes:
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="/">Blue Tigers Equipment Store</a>
+      <a class="brand" href="/">Blue Tigers Equipment Sign Out</a>
       <nav>
         <a href="/signout">Sign Out</a>
         <a href="/return">Return</a>
