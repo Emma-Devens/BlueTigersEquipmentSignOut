@@ -34,7 +34,7 @@ def today_iso() -> str:
 
 
 def min_buffer_date() -> date:
-    return (now() + timedelta(hours=72)).date()
+    return (now() + timedelta(hours=48)).date()
 
 
 def min_buffer_iso() -> str:
@@ -110,7 +110,7 @@ def pickup_available_at(record: dict) -> str:
     if existing:
         return existing
     created = parse_dt(record.get("created_at")) or now()
-    return (created + timedelta(hours=72)).isoformat(timespec="seconds")
+    return (created + timedelta(hours=48)).isoformat(timespec="seconds")
 
 
 def status_for(record: dict) -> str:
@@ -219,7 +219,7 @@ def home_page(admin: bool = False) -> bytes:
 
 
 def signout_page(admin: bool = False) -> bytes:
-    earliest = now() + timedelta(hours=72)
+    earliest = now() + timedelta(hours=48)
     earliest_display = earliest.strftime("%b %d, %Y at %I:%M %p").replace(" 0", " ")
     min_date = min_buffer_iso()
     body = f"""
@@ -244,7 +244,7 @@ def signout_page(admin: bool = False) -> bytes:
       <button type="submit">Submit request</button>
       <div class="notice">Earliest pickup: <strong>{esc(earliest_display)}</strong></div>
     </div>
-    <p class="short-notice">If equipment needs to be picked up before the 72 hour buffer, a message must be sent to C/Devens and C/Nettles describing what the equipment is needed for, and why on such short notice. Equipment will not be allowed to be taken without permission from either C/Devens or C/Nettles.</p>
+    <p class="short-notice">If equipment needs to be picked up before the 48 hour buffer, a message must be sent to C/Devens and C/Nettles describing what the equipment is needed for, and why on such short notice. Equipment will not be allowed to be taken without permission from either C/Devens or C/Nettles.</p>
   </form>
 </section>
 <script>
@@ -387,6 +387,7 @@ def admin_record(record: dict) -> str:
   <input name="issue_details" value="{esc(record.get("issue_details"))}" placeholder="Missing items">
   <input name="staff_notes" placeholder="Additional details">
   <button type="submit">Update</button>
+  <button class="danger" type="submit" name="action" value="delete_record" onclick="return confirm('Permanently delete this equipment record?');">Delete record</button>
 </form>"""
 
 
@@ -525,7 +526,7 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                     "items": items,
                     "picked_up": False,
                     "ready_for_pickup": False,
-                    "pickup_available_at": (created_at + timedelta(hours=72)).isoformat(timespec="seconds"),
+                    "pickup_available_at": (created_at + timedelta(hours=48)).isoformat(timespec="seconds"),
                     "return_claimed": False,
                     "return_type": "",
                     "missing_items": "",
@@ -544,6 +545,11 @@ class EquipmentHandler(BaseHTTPRequestHandler):
         elif path == "/return":
             records = load_records()
             record_id = form.get("record_id", [""])[0]
+            if form.get("action", [""])[0] == "delete_record":
+                records = [record for record in records if record.get("id") != record_id]
+                save_records(records)
+                self.redirect("/admin")
+                return
             for record in records:
                 if record["id"] == record_id:
                     record["return_claimed"] = True
