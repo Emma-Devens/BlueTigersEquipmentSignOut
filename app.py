@@ -545,11 +545,6 @@ class EquipmentHandler(BaseHTTPRequestHandler):
         elif path == "/return":
             records = load_records()
             record_id = form.get("record_id", [""])[0]
-            if form.get("action", [""])[0] == "delete_record":
-                records = [record for record in records if record.get("id") != record_id]
-                save_records(records)
-                self.redirect("/admin")
-                return
             for record in records:
                 if record["id"] == record_id:
                     record["return_claimed"] = True
@@ -570,6 +565,11 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                 return
             records = load_records()
             record_id = form.get("record_id", [""])[0]
+            if form.get("action", [""])[0] == "delete_record":
+                records = [record for record in records if record.get("id") != record_id]
+                save_records(records)
+                self.redirect("/admin")
+                return
             for record in records:
                 if record["id"] == record_id:
                     if form.get("action", [""])[0] == "clear_issue":
