@@ -6,7 +6,8 @@ import os
 from datetime import date, datetime, timedelta
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.request import Request, urlopen
 from uuid import uuid4
 
 
@@ -14,11 +15,25 @@ BASE_DIR = Path(__file__).parent
 DATA_FILE = BASE_DIR / "data" / "equipment_log.json"
 STYLE_FILE = BASE_DIR / "static" / "styles.css"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "BlueTigers26")
+GOOGLE_SHEETS_WEB_APP_URL = os.environ.get("GOOGLE_SHEETS_WEB_APP_URL", "").strip()
+GOOGLE_SHEETS_API_TOKEN = os.environ.get("GOOGLE_SHEETS_API_TOKEN", "").strip()
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "8000"))
 
 
 def load_records() -> list[dict]:
+    if google_sheets_enabled():
+        records = load_sheet_records()
+        if records or not os.environ.get("MIGRATE_JSON_RECORDS_TO_SHEETS"):
+            return records
+        local_records = load_local_records()
+        if local_records:
+            save_sheet_records(local_records)
+        return local_records
+    return load_local_records()
+
+
+def load_local_records() -> list[dict]:
     if not DATA_FILE.exists():
         DATA_FILE.parent.mkdir(exist_ok=True)
         DATA_FILE.write_text("[]", encoding="utf-8")
@@ -26,7 +41,48 @@ def load_records() -> list[dict]:
 
 
 def save_records(records: list[dict]) -> None:
+    if google_sheets_enabled():
+        save_sheet_records(records)
+        return
     DATA_FILE.write_text(json.dumps(records, indent=2), encoding="utf-8")
+
+
+def google_sheets_enabled() -> bool:
+    return bool(GOOGLE_SHEETS_WEB_APP_URL and GOOGLE_SHEETS_API_TOKEN)
+
+
+def load_sheet_records() -> list[dict]:
+    query = urlencode({"token": GOOGLE_SHEETS_API_TOKEN})
+    separator = "&" if "?" in GOOGLE_SHEETS_WEB_APP_URL else "?"
+    request_url = f"{GOOGLE_SHEETS_WEB_APP_URL}{separator}{query}"
+    try:
+        with urlopen(request_url, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        raise RuntimeError("Could not load equipment records from Google Sheets.") from error
+    if payload.get("error"):
+        raise RuntimeError(f"Google Sheets error: {payload['error']}")
+    records = payload.get("records")
+    if not isinstance(records, list):
+        raise RuntimeError("Google Sheets returned an invalid records list.")
+    return records
+
+
+def save_sheet_records(records: list[dict]) -> None:
+    payload = json.dumps({"token": GOOGLE_SHEETS_API_TOKEN, "records": records}).encode("utf-8")
+    request = Request(
+        GOOGLE_SHEETS_WEB_APP_URL,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=20) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        raise RuntimeError("Could not save equipment records to Google Sheets.") from error
+    if result.get("error"):
+        raise RuntimeError(f"Google Sheets error: {result['error']}")
 
 
 def today_iso() -> str:

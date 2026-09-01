@@ -8,10 +8,12 @@
    - Runtime: Python
    - Build command: `pip install -r requirements.txt`
    - Start command: `python app.py`
-4. Add an environment variable:
+4. Add these environment variables:
    - `ADMIN_PASSWORD` = your admin password
+   - `GOOGLE_SHEETS_WEB_APP_URL` = your Google Apps Script `/exec` URL
+   - `GOOGLE_SHEETS_API_TOKEN` = the private token used in your Apps Script
 5. Deploy.
 
 The app reads Render's `PORT` automatically.
 
-Note: Render free services can sleep when unused. Also, the free tier does not give this app a durable database, so `data/equipment_log.json` is fine for a prototype but not ideal for long-term official records.
+After these Google Sheets variables are configured, equipment records are stored in your Google Sheet instead of Render's temporary local file. To copy the sample local records to a new empty Sheet one time, temporarily add `MIGRATE_JSON_RECORDS_TO_SHEETS=true`, open the site once, then remove that variable.
