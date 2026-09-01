@@ -414,7 +414,7 @@ def admin_page(admin: bool = True) -> bytes:
         "scheduled": sorted([r for r in records if r["status"] == "waiting-pickup" and not r.get("ready_for_pickup")], key=return_sort_key),
         "ready": sorted([r for r in records if r["status"] == "waiting-pickup" and r.get("ready_for_pickup")], key=return_sort_key),
         "returned": sorted([r for r in records if r["status"] == "pending-review"], key=return_sort_key),
-        "complete": sorted([r for r in records if r["status"] == "returned" and recent_staff_return(r)], key=return_sort_key),
+        "complete": sorted([r for r in records if r["status"] == "returned"], key=return_sort_key),
         "late": sorted([r for r in records if r["status"] == "late"], key=return_sort_key),
         "out": sorted([r for r in records if r["status"] == "checked-out"], key=return_sort_key),
         "issues": sorted([r for r in records if r.get("staff_issue") and r.get("issue_details")], key=return_sort_key),
@@ -440,7 +440,7 @@ def admin_page(admin: bool = True) -> bytes:
   {section("ready", "Ready for Pick-up", admin_record, "No equipment is marked ready for pick-up.")}
   {section("returned", "Equipment Returned", admin_record, "No returned items are waiting on staff confirmation.")}
   {section("late", "Late Equipment", admin_record, "Nothing is late right now.")}
-  {section("complete", "Returned Items", admin_record, "No staff-confirmed returns from the last 24 hours.")}
+  {section("complete", "Returned Items", admin_record, "No staff-confirmed returns.")}
   {section("out", "Equipment Currently Out", admin_record, "No equipment is currently checked out.")}
   {section("issues", "Broken, Missing, or Misplaced Equipment", issue_record, "No broken, missing, or misplaced equipment has been logged.")}
 </section>"""
