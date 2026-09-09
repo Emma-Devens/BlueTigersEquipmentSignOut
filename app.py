@@ -507,17 +507,17 @@ def admin_page(admin: bool = True) -> bytes:
   <div class="panel-heading"><p class="eyebrow">Staff dashboard</p><h1>Admin Screen</h1></div>
   <div class="tabs">
     <a href="#scheduled">Equipment to be Signed Out</a>
+    <a href="#out">Equipment Currently Out</a>
     <a href="#returned">Equipment Returned</a>
     <a href="#late">Late Equipment</a>
     <a href="#complete">Returned Items</a>
-    <a href="#out">Equipment Currently Out</a>
     <a href="#issues">Broken, Missing, or Misplaced Equipment</a>
   </div>
   {section("scheduled", "Equipment to be Signed Out", admin_record, "No upcoming pickups are scheduled.")}
+  {section("out", "Equipment Currently Out", admin_record, "No equipment is currently checked out.")}
   {section("returned", "Equipment Returned", admin_record, "No returned items are waiting on staff confirmation.")}
   {section("late", "Late Equipment", admin_record, "Nothing is late right now.")}
   {section("complete", "Returned Items", admin_record, "No staff-confirmed returns.")}
-  {section("out", "Equipment Currently Out", admin_record, "No equipment is currently checked out.")}
   {section("issues", "Broken, Missing, or Misplaced Equipment", issue_record, "No broken, missing, or misplaced equipment has been logged.")}
 </section>"""
     return layout("Admin", body, admin)

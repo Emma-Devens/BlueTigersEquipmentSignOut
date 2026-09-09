@@ -71,5 +71,16 @@ class StatusForTests(unittest.TestCase):
         self.assertEqual(app.status_for(record), "returned")
 
 
+class AdminPageTests(unittest.TestCase):
+    @patch("app.load_records", return_value=[])
+    def test_currently_out_appears_before_equipment_returned(self, _mock_load):
+        page = app.admin_page().decode("utf-8")
+
+        self.assertLess(
+            page.index('<section id="out"'),
+            page.index('<section id="returned"'),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
