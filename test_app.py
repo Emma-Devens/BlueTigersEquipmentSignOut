@@ -1,4 +1,6 @@
 import unittest
+from datetime import datetime
+from unittest.mock import patch
 
 import app
 
@@ -20,9 +22,33 @@ class StatusForTests(unittest.TestCase):
             "return_claimed": False,
             "picked_up": False,
             "return_date": app.today_iso(),
+            "pickup_date": "2099-01-01",
         }
 
         self.assertEqual(app.status_for(record), "waiting-pickup")
+
+    def test_pickup_checkbox_moves_record_to_currently_out(self):
+        record = {
+            "staff_confirmed": False,
+            "return_claimed": False,
+            "picked_up": True,
+            "pickup_date": "2099-01-01",
+            "return_date": "2099-01-02",
+        }
+
+        self.assertEqual(app.status_for(record), "checked-out")
+
+    @patch("app.now", return_value=datetime(2026, 9, 9, 8, 0, 0))
+    def test_record_moves_to_currently_out_at_pickup_time(self, _mock_now):
+        record = {
+            "staff_confirmed": False,
+            "return_claimed": False,
+            "picked_up": False,
+            "pickup_date": "2026-09-09",
+            "return_date": "2026-09-10",
+        }
+
+        self.assertEqual(app.status_for(record), "checked-out")
 
     def test_google_sheets_false_strings_are_false(self):
         record = {

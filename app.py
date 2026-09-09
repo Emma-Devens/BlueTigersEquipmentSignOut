@@ -182,6 +182,11 @@ def pickup_available_at(record: dict) -> str:
     return (created + timedelta(hours=48)).isoformat(timespec="seconds")
 
 
+def pickup_time_has_arrived(record: dict) -> bool:
+    pickup_at = parse_dt(pickup_available_at(record))
+    return bool(pickup_at and now() >= pickup_at)
+
+
 def status_for(record: dict) -> str:
     if as_bool(record.get("staff_confirmed")):
         return "returned"
@@ -190,7 +195,9 @@ def status_for(record: dict) -> str:
     # form appear to do nothing because the record stayed in waiting-pickup.
     if as_bool(record.get("return_claimed")):
         return "pending-review"
-    if not as_bool(record.get("picked_up")):
+    # Staff can mark an item picked up early. Otherwise it moves to the
+    # currently-out bucket automatically at 8:00 AM on its pickup date.
+    if not as_bool(record.get("picked_up")) and not pickup_time_has_arrived(record):
         return "waiting-pickup"
     due = record.get("return_date") or today_iso()
     if due < today_iso():
@@ -441,7 +448,7 @@ def note_lines(record: dict) -> str:
 
 
 def admin_record(record: dict) -> str:
-    ready = "checked" if as_bool(record.get("ready_for_pickup")) else ""
+    picked_up = "checked" if as_bool(record.get("picked_up")) else ""
     confirmed = "checked" if as_bool(record.get("staff_confirmed")) else ""
     issue = "checked" if as_bool(record.get("staff_issue")) else ""
     return f"""
@@ -453,7 +460,7 @@ def admin_record(record: dict) -> str:
     <small>Pickup {esc(record["pickup_date"])} | Return {esc(record["return_date"])}</small>
     {note_lines(record)}
   </div>
-  <label class="checkbox"><input type="checkbox" name="ready_for_pickup" {ready}>Ready for pick-up</label>
+  <label class="checkbox"><input type="checkbox" name="picked_up" {picked_up}>Move to Equipment Currently Out</label>
   <label class="checkbox"><input type="checkbox" name="staff_confirmed" {confirmed}>Returned</label>
   <label class="checkbox"><input type="checkbox" name="staff_issue" {issue}>Broken, missing, or misplaced</label>
   <input name="issue_details" value="{esc(record.get("issue_details"))}" placeholder="Missing items">
@@ -483,8 +490,7 @@ def issue_record(record: dict) -> str:
 def admin_page(admin: bool = True) -> bytes:
     records = enrich(load_records())
     buckets = {
-        "scheduled": sorted([r for r in records if r["status"] == "waiting-pickup" and not as_bool(r.get("ready_for_pickup"))], key=return_sort_key),
-        "ready": sorted([r for r in records if r["status"] == "waiting-pickup" and as_bool(r.get("ready_for_pickup"))], key=return_sort_key),
+        "scheduled": sorted([r for r in records if r["status"] == "waiting-pickup"], key=return_sort_key),
         "returned": sorted([r for r in records if r["status"] == "pending-review"], key=return_sort_key),
         "complete": sorted([r for r in records if r["status"] == "returned"], key=return_sort_key),
         "late": sorted([r for r in records if r["status"] == "late"], key=return_sort_key),
@@ -501,7 +507,6 @@ def admin_page(admin: bool = True) -> bytes:
   <div class="panel-heading"><p class="eyebrow">Staff dashboard</p><h1>Admin Screen</h1></div>
   <div class="tabs">
     <a href="#scheduled">Equipment to be Signed Out</a>
-    <a href="#ready">Ready for Pick-up</a>
     <a href="#returned">Equipment Returned</a>
     <a href="#late">Late Equipment</a>
     <a href="#complete">Returned Items</a>
@@ -509,7 +514,6 @@ def admin_page(admin: bool = True) -> bytes:
     <a href="#issues">Broken, Missing, or Misplaced Equipment</a>
   </div>
   {section("scheduled", "Equipment to be Signed Out", admin_record, "No upcoming pickups are scheduled.")}
-  {section("ready", "Ready for Pick-up", admin_record, "No equipment is marked ready for pick-up.")}
   {section("returned", "Equipment Returned", admin_record, "No returned items are waiting on staff confirmation.")}
   {section("late", "Late Equipment", admin_record, "Nothing is late right now.")}
   {section("complete", "Returned Items", admin_record, "No staff-confirmed returns.")}
@@ -597,7 +601,6 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                     "reason": form.get("reason", [""])[0].strip(),
                     "items": items,
                     "picked_up": False,
-                    "ready_for_pickup": False,
                     "pickup_available_at": (created_at + timedelta(hours=48)).isoformat(timespec="seconds"),
                     "return_claimed": False,
                     "return_type": "",
@@ -651,7 +654,7 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                         break
                     was_confirmed = as_bool(record.get("staff_confirmed"))
                     was_issue = as_bool(record.get("staff_issue"))
-                    record["ready_for_pickup"] = "ready_for_pickup" in form
+                    record["picked_up"] = "picked_up" in form
                     record["staff_confirmed"] = "staff_confirmed" in form
                     if record["staff_confirmed"] and not was_confirmed:
                         record["staff_confirmed_at"] = now().isoformat(timespec="seconds")
