@@ -110,6 +110,19 @@ def parse_dt(value: str | None) -> datetime | None:
         return None
 
 
+def as_bool(value: object) -> bool:
+    """Normalize booleans returned by JSON and spreadsheet-backed storage."""
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "1", "yes", "on", "checked"}
+    return bool(value)
+
+
 def display_dt(value: str | None) -> str:
     parsed = parse_dt(value)
     if not parsed:
@@ -170,15 +183,18 @@ def pickup_available_at(record: dict) -> str:
 
 
 def status_for(record: dict) -> str:
-    if record.get("staff_confirmed"):
+    if as_bool(record.get("staff_confirmed")):
         return "returned"
-    if not record.get("picked_up"):
+    # A submitted return must move to staff review even when an older record
+    # was never marked as picked up. Checking picked_up first made the return
+    # form appear to do nothing because the record stayed in waiting-pickup.
+    if as_bool(record.get("return_claimed")):
+        return "pending-review"
+    if not as_bool(record.get("picked_up")):
         return "waiting-pickup"
     due = record.get("return_date") or today_iso()
     if due < today_iso():
         return "late"
-    if record.get("return_claimed"):
-        return "pending-review"
     return "checked-out"
 
 
@@ -425,9 +441,9 @@ def note_lines(record: dict) -> str:
 
 
 def admin_record(record: dict) -> str:
-    ready = "checked" if record.get("ready_for_pickup") else ""
-    confirmed = "checked" if record.get("staff_confirmed") else ""
-    issue = "checked" if record.get("staff_issue") else ""
+    ready = "checked" if as_bool(record.get("ready_for_pickup")) else ""
+    confirmed = "checked" if as_bool(record.get("staff_confirmed")) else ""
+    issue = "checked" if as_bool(record.get("staff_issue")) else ""
     return f"""
 <form method="post" class="record status-{esc(record["status"])}">
   <input type="hidden" name="record_id" value="{esc(record["id"])}">
@@ -467,13 +483,13 @@ def issue_record(record: dict) -> str:
 def admin_page(admin: bool = True) -> bytes:
     records = enrich(load_records())
     buckets = {
-        "scheduled": sorted([r for r in records if r["status"] == "waiting-pickup" and not r.get("ready_for_pickup")], key=return_sort_key),
-        "ready": sorted([r for r in records if r["status"] == "waiting-pickup" and r.get("ready_for_pickup")], key=return_sort_key),
+        "scheduled": sorted([r for r in records if r["status"] == "waiting-pickup" and not as_bool(r.get("ready_for_pickup"))], key=return_sort_key),
+        "ready": sorted([r for r in records if r["status"] == "waiting-pickup" and as_bool(r.get("ready_for_pickup"))], key=return_sort_key),
         "returned": sorted([r for r in records if r["status"] == "pending-review"], key=return_sort_key),
         "complete": sorted([r for r in records if r["status"] == "returned"], key=return_sort_key),
         "late": sorted([r for r in records if r["status"] == "late"], key=return_sort_key),
         "out": sorted([r for r in records if r["status"] == "checked-out"], key=return_sort_key),
-        "issues": sorted([r for r in records if r.get("staff_issue") and r.get("issue_details")], key=return_sort_key),
+        "issues": sorted([r for r in records if as_bool(r.get("staff_issue")) and r.get("issue_details")], key=return_sort_key),
     }
 
     def section(key: str, title: str, renderer, empty: str) -> str:
@@ -633,8 +649,8 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                         record["issue_details"] = ""
                         record["issue_logged_at"] = ""
                         break
-                    was_confirmed = bool(record.get("staff_confirmed"))
-                    was_issue = bool(record.get("staff_issue"))
+                    was_confirmed = as_bool(record.get("staff_confirmed"))
+                    was_issue = as_bool(record.get("staff_issue"))
                     record["ready_for_pickup"] = "ready_for_pickup" in form
                     record["staff_confirmed"] = "staff_confirmed" in form
                     if record["staff_confirmed"] and not was_confirmed:
