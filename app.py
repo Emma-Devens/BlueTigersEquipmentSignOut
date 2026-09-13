@@ -69,12 +69,7 @@ def load_sheet_records() -> list[dict]:
 
 
 def save_sheet_records(records: list[dict]) -> None:
-    post_sheet_payload({"token": GOOGLE_SHEETS_API_TOKEN, "records": records})
-
-
-def post_sheet_payload(payload_data: dict) -> None:
-    """Send a write request to the Apps Script web app and require success."""
-    payload = json.dumps(payload_data).encode("utf-8")
+    payload = json.dumps({"token": GOOGLE_SHEETS_API_TOKEN, "records": records}).encode("utf-8")
     request = Request(
         GOOGLE_SHEETS_WEB_APP_URL,
         data=payload,
@@ -88,27 +83,6 @@ def post_sheet_payload(payload_data: dict) -> None:
         raise RuntimeError("Could not save equipment records to Google Sheets.") from error
     if result.get("error"):
         raise RuntimeError(f"Google Sheets error: {result['error']}")
-    if not result.get("ok"):
-        raise RuntimeError("Google Sheets did not confirm that the record was saved.")
-
-
-def archive_deleted_record(record: dict) -> None:
-    """Keep an immutable deletion audit entry before removing a live record."""
-    if not google_sheets_enabled():
-        raise RuntimeError("Google Sheets must be connected before records can be deleted.")
-
-    snapshot = dict(record)
-    snapshot["status"] = status_for(record)
-    post_sheet_payload(
-        {
-            "token": GOOGLE_SHEETS_API_TOKEN,
-            "action": "archive_record",
-            "record": snapshot,
-            "final_stage": snapshot["status"],
-            "deleted_at": now().isoformat(timespec="seconds"),
-            "deleted_by": "Admin",
-        }
-    )
 
 
 def today_iso() -> str:
@@ -225,8 +199,9 @@ def status_for(record: dict) -> str:
     # currently-out bucket automatically at 8:00 AM on its pickup date.
     if not as_bool(record.get("picked_up")) and not pickup_time_has_arrived(record):
         return "waiting-pickup"
-    due = record.get("return_date") or today_iso()
-    if due < today_iso():
+    current_date = now().date().isoformat()
+    due = record.get("return_date") or current_date
+    if due < current_date:
         return "late"
     return "checked-out"
 
@@ -667,15 +642,6 @@ class EquipmentHandler(BaseHTTPRequestHandler):
             records = load_records()
             record_id = form.get("record_id", [""])[0]
             if form.get("action", [""])[0] == "delete_record":
-                record_to_delete = next(
-                    (record for record in records if record.get("id") == record_id), None
-                )
-                if record_to_delete is None:
-                    self.redirect("/admin")
-                    return
-                # Archive first. If the spreadsheet cannot confirm the archive,
-                # leave the record visible so an audit trail can never be lost.
-                archive_deleted_record(record_to_delete)
                 records = [record for record in records if record.get("id") != record_id]
                 save_records(records)
                 self.redirect("/admin")

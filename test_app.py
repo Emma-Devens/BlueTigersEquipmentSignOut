@@ -82,29 +82,5 @@ class AdminPageTests(unittest.TestCase):
         )
 
 
-class DeletedRecordArchiveTests(unittest.TestCase):
-    @patch("app.post_sheet_payload")
-    @patch("app.google_sheets_enabled", return_value=True)
-    def test_deletion_archive_contains_a_final_status_and_full_record(
-        self, _sheets_enabled, post_payload
-    ):
-        record = {
-            "id": "record-123",
-            "cadet_name": "Test Cadet",
-            "items": [{"name": "Radio", "quantity": 2}],
-            "pickup_date": "2026-09-10",
-            "return_date": "2026-09-11",
-            "staff_confirmed": True,
-        }
-
-        app.archive_deleted_record(record)
-
-        payload = post_payload.call_args.args[0]
-        self.assertEqual(payload["action"], "archive_record")
-        self.assertEqual(payload["final_stage"], "returned")
-        self.assertEqual(payload["record"]["id"], "record-123")
-        self.assertEqual(payload["record"]["items"], record["items"])
-
-
 if __name__ == "__main__":
     unittest.main()
