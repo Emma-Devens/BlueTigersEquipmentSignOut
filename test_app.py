@@ -81,6 +81,49 @@ class AdminPageTests(unittest.TestCase):
             page.index('<section id="returned"'),
         )
 
+    @patch("app.load_records")
+    def test_records_have_bulk_delete_checkboxes(self, load_records):
+        load_records.return_value = [
+            {"id": "one", "cadet": "Cadet One", "items": [],
+             "pickup_date": "2099-01-01", "return_date": "2099-01-02"},
+            {"id": "two", "cadet": "Cadet Two", "items": [],
+             "pickup_date": "2099-01-01", "return_date": "2099-01-02"},
+        ]
+        page = app.admin_page().decode("utf-8")
+        self.assertIn('id="bulk-delete-form"', page)
+        self.assertEqual(page.count('name="selected_record_ids"'), 2)
+        self.assertIn('form="bulk-delete-form"', page)
+
+
+class BulkDeleteTests(unittest.TestCase):
+    @patch("app.save_records")
+    @patch("app.load_records")
+    def test_only_selected_records_are_removed(self, load_records, save_records):
+        load_records.return_value = [{"id": "one"}, {"id": "two"}, {"id": "three"}]
+        handler = object.__new__(app.EquipmentHandler)
+        handler.path = "/admin"
+        handler.is_admin = lambda: True
+        handler.read_form = lambda: {"action": ["delete_selected"],
+                                     "selected_record_ids": ["one", "three"]}
+        handler.redirect = lambda path: None
+
+        handler.do_POST()
+
+        save_records.assert_called_once_with([{"id": "two"}])
+
+    @patch("app.save_records")
+    @patch("app.load_records", return_value=[{"id": "one"}])
+    def test_empty_selection_does_not_save(self, _load_records, save_records):
+        handler = object.__new__(app.EquipmentHandler)
+        handler.path = "/admin"
+        handler.is_admin = lambda: True
+        handler.read_form = lambda: {"action": ["delete_selected"]}
+        handler.redirect = lambda path: None
+
+        handler.do_POST()
+
+        save_records.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

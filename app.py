@@ -455,6 +455,7 @@ def admin_record(record: dict) -> str:
     return f"""
 <form method="post" class="record status-{esc(record["status"])}">
   <input type="hidden" name="record_id" value="{esc(record["id"])}">
+  <label class="checkbox"><input type="checkbox" name="selected_record_ids" value="{esc(record["id"])}" form="bulk-delete-form">Select for deletion</label>
   <div>
     <strong>{esc(record["cadet"])}</strong>
     <span>{esc(record["items_text"])}</span>
@@ -514,6 +515,10 @@ def admin_page(admin: bool = True) -> bytes:
     <a href="#complete">Returned Items</a>
     <a href="#issues">Broken, Missing, or Misplaced Equipment</a>
   </div>
+  <form method="post" id="bulk-delete-form" onsubmit="const count = document.querySelectorAll('input[name=selected_record_ids]:checked').length; if (!count) {{ alert('Select at least one record to delete.'); return false; }} return confirm('Delete ' + count + ' selected record(s)?');">
+    <input type="hidden" name="action" value="delete_selected">
+    <button class="danger" type="submit">Delete selected records</button>
+  </form>
   {section("scheduled", "Equipment to be Signed Out", admin_record, "No upcoming pickups are scheduled.")}
   {section("out", "Equipment Currently Out", admin_record, "No equipment is currently checked out.")}
   {section("returned", "Equipment Returned", admin_record, "No returned items are waiting on staff confirmation.")}
@@ -641,6 +646,12 @@ class EquipmentHandler(BaseHTTPRequestHandler):
                 return
             records = load_records()
             record_id = form.get("record_id", [""])[0]
+            if form.get("action", [""])[0] == "delete_selected":
+                selected_ids = set(form.get("selected_record_ids", []))
+                if selected_ids:
+                    save_records([record for record in records if record.get("id") not in selected_ids])
+                self.redirect("/admin")
+                return
             if form.get("action", [""])[0] == "delete_record":
                 records = [record for record in records if record.get("id") != record_id]
                 save_records(records)
